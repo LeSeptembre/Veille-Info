@@ -1,6 +1,5 @@
 import subprocess,os, tkinter
-import tkinter as tk
-from tkinter import scrolledtext
+
 
 def lexing1(var):
     tokken = ["Montrer"]
@@ -90,6 +89,7 @@ def postfix_to_tree(postfix_expression):
     stack = []
 
     for token in postfix_expression:
+        print(token)
         if token[0] == '"':
             stack.append(token)
         elif token.isdigit() or token.replace('.', '').isdigit():
@@ -121,7 +121,6 @@ def parsing(var):
 
 
 
-
 def reacting_trad(act, head, body):
     ope = {'+': "+", '-': "-", '*': "*", '/': "/", '^': "pow"}
     tokken = ["Montrer"]
@@ -141,9 +140,6 @@ def reacting_trad(act, head, body):
         if act == "Montrer":
             body.append("if(stack_top >= 0) {\n  double value_to_print = stack_pop();\n  printf(\"%g\\n\", value_to_print);\n} else {\n  return 0;\n}")
 
-
-
-
 def navigate(tree, head, body):
     if isinstance(tree, list):
         for i in range(len(tree) - 1, -1, -1):
@@ -151,54 +147,25 @@ def navigate(tree, head, body):
     else:
         reacting_trad(tree, head, body)
 
-
-
-def run_code():
-    output_text.delete(1.0, tk.END)
-    error_text.delete(1.0, tk.END)
-    try:
-        var = code_text.get(1.0, tk.END)
-        var = lexing1(var)
-        res = parsing(var)
-        display_tree(res)
-        navigate(res, head, body)
-        head.append("\n".join(body))
-
-        head.append("return 0;\n}")
-        with open("output.c", "w") as c_file:
-            c_file.write("\n".join(head))
-        c_file.close()
-
-        subprocess.run(['gcc', 'output.c', '-o', 'srt'])
-        process = subprocess.Popen('srt.exe', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
-        stdout, stderr = process.communicate()
-        os.remove("srt.exe")
-        os.remove("output.c")
-        
-    except Exception as e:
-        error_text.insert(tk.END, f"Erreur : {str(e)}")
-    
-    output_result = stdout
-    error_result = stderr
-    output_text.insert(tk.END, output_result)
-    error_text.insert(tk.END, error_result)
-
 head = ["#include <stdio.h>\n\ndouble stack[100];\ndouble a;\ndouble b;\nint stack_top = -1;\n\nvoid stack_push(double value) {\n    stack[++stack_top] = value;\n}\n\ndouble stack_pop() {\n    return stack[stack_top--];\n}\n\nint main() {"]
 body = []
 
+var =  str(input("Que voulez vous ?"))
+var = lexing1(var)
+res = parsing(var)
+display_tree(res)
+navigate(res, head, body)
+head.append("\n".join(body))
+head.append("return 0;\n}")
+with open("output.c", "w") as c_file:
+    c_file.write("\n".join(head))
 
-root = tk.Tk()
-root.title("Simple Code Runner")
-code_text = scrolledtext.ScrolledText(root, width=40, height=20, wrap=tk.WORD)
-code_text.pack(side=tk.LEFT, padx=10, pady=10)
-run_button = tk.Button(root, text="Run Code", command=run_code)
-run_button.pack(side=tk.TOP, pady=10)
-output_text = scrolledtext.ScrolledText(root, width=40, height=10, wrap=tk.WORD)
-output_text.pack(side=tk.TOP, padx=10, pady=10)
-error_text = scrolledtext.ScrolledText(root, width=40, height=5, wrap=tk.WORD, fg="red")
-error_text.pack(side=tk.TOP, padx=10, pady=10)
-root.mainloop()
+subprocess.run(['gcc', 'output.c', '-o', 'srt'])
+process = subprocess.Popen('srt.exe', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+stdout, stderr = process.communicate()
 
-
-
+print("Sortie standard :\n", stdout)
+print("Sortie d'erreur :\n", stderr)
+os.remove("srt.exe")
+os.remove("output.c")
 
